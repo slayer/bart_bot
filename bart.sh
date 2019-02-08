@@ -2,9 +2,12 @@
 #
 PATH='/usr/bin:/usr/sbin:/bin:/sbin'
 
-TOKEN=$(cat token)
-RUPOR=$(cat rupor)
-CHATS=$(cat chats)
+DIR=$(dirname $BASH_SOURCE)
+cd ${DIR}
+TOKEN=$(cat ${DIR}/token)
+RUPOR=$(cat ${DIR}/rupor)
+CHATS=$(cat ${DIR}/chats)
+
 offset_file=/tmp/telegram_offset
 LOGGER="cat >>/tmp/bart.log" # or logger -t "bart"
 API="https://api.telegram.org/bot$token"
