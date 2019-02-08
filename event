@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# exec >>/tmp/motion-event.log 2>&1
+# set -x
+
+ACTION=$1; shift
+CAM=$1
+
+echo "ACTION=${ACTION}; CAM=${CAM}"
+motion_dir=/mnt/wd0/motion
+cam_dir=${motion_dir}/${CAM}
+pidfile=${motion_dir}/vlc-${CAM}.pid
+
+if [[ "${ACTION}" = "start" ]]; then
+  outfile="${motion_dir}/${CAM}/mp4/$(date +%Y%m%d-%H%M%S).mp4"
+  echo $outfile > ${cam_dir}/last_mp4
+  /usr/bin/cvlc 'rtsp://10.8.11.12:554/user=admin&password=201806&channel=1&stream=0.sdp?real_stream--rtp-caching=100' \
+      --sout=file/ps:${outfile} --run-time=120 &
+  vlcpid=$!
+  echo $vlcpid >$pidfile
+elif [[ "${ACTION}" == "end" ]]; then
+  kill $(cat ${pidfile})
+  rm ${pidfile}
+  # /opt/bart_bot/send_video.sh $(cat ${cam_dir}/last_mp4)
+  ffmpeg -f concat -y -safe 0 -i /tmp/camera-${CAM}-images.txt /tmp/camera-${CAM}-video.mp4
+  /opt/bart_bot/send_video.sh /tmp/camera-${CAM}-video.mp4
+  echo -e '' >/tmp/camera-${CAM}-images.txt
+else
+  echo "invalid params"
+fi
+
+
+
